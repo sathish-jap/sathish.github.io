@@ -134,8 +134,59 @@
   }
   nav.top .links a:hover::after { transform: scaleX(1); }
 
+  /* ===== Hamburger (mobile only) ===== */
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 110;
+  }
+  .nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+  }
+  /* Animate to X when open */
+  nav.top.menu-open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  nav.top.menu-open .nav-toggle span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  nav.top.menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
   @media (max-width: 720px) {
     nav.top .links { display: none; }
+    .nav-toggle { display: flex; }
+
+    /* Mobile dropdown */
+    nav.top.menu-open .links {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: fixed;
+      top: var(--nav-height, 61px);
+      left: 0;
+      right: 0;
+      background: rgba(245, 241, 232, 0.97);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 0 16px;
+      z-index: 100;
+    }
+    nav.top.menu-open .links li { width: 100%; }
+    nav.top.menu-open .links a {
+      display: block;
+      padding: 13px var(--gutter);
+      font-size: 16px;
+    }
+    nav.top.menu-open .links a::after { display: none; }
   }
 
   /* ===== Hero ===== */
@@ -912,7 +963,12 @@
 <nav class="top" id="nav">
   <div class="inner">
     <a href="#top" class="brand">Sathish Kumar <span class="dot"></span></a>
-    <ul class="links">
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <ul class="links" id="nav-links">
       <li><a href="#streams">Streams</a></li>
       <li><a href="#engagement">Engagement</a></li>
       <li><a href="#background">Background</a></li>
@@ -1314,6 +1370,31 @@
   (function () {
     try {
       document.documentElement.classList.add('js-anim');
+
+      // Mobile hamburger menu
+      var navToggle = document.getElementById('nav-toggle');
+      var navEl = document.getElementById('nav');
+      var navLinks = document.getElementById('nav-links');
+      if (navToggle) {
+        navToggle.addEventListener('click', function () {
+          var open = navEl.classList.toggle('menu-open');
+          navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        // Close menu when a nav link is tapped
+        navLinks.querySelectorAll('a').forEach(function (link) {
+          link.addEventListener('click', function () {
+            navEl.classList.remove('menu-open');
+            navToggle.setAttribute('aria-expanded', 'false');
+          });
+        });
+        // Close menu on outside tap
+        document.addEventListener('click', function (e) {
+          if (!navEl.contains(e.target)) {
+            navEl.classList.remove('menu-open');
+            navToggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
 
       // Sticky nav border on scroll
       var nav = document.getElementById('nav');
